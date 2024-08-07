@@ -71,8 +71,6 @@ async def randomBall(ctx):
     await ctx.send(f'{ctx.author.name}, Ask me a question!')
 
 
-
-
 # other commands idk
 
 
