@@ -86,20 +86,7 @@ async def commands(ctx):
     await ctx.send('Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n\nEnjoy')
 
 
-
-
 # now im gonna try and make an 8 ball command like what i tried to do with typescript but failed massively
-
-
-
-
-
-    
-
-
-
-
-
 
 
 #abandoned code
