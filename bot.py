@@ -1,9 +1,10 @@
-from discord.ext import commands
 import discord
+from discord import app_commands
+from discord.ext import commands
 import random
 import os
 from dotenv import load_dotenv 
-from discord import app_commands
+
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
@@ -18,7 +19,11 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 async def on_ready():
     print("im ready")
     channel = bot.get_channel(CHANNEL_ID)
-    await channel.send("Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n\nEnjoy")
+    try:
+        synced = await bot.tree.sync()
+        await channel.send("Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n\nEnjoy")
+    except Exception as e:
+        print(e)
 
 
 
@@ -84,22 +89,123 @@ async def commands(ctx):
     await ctx.send('Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n\nEnjoy')
 
 
-# now im gonna try and make an 8 ball command like what i tried to do with typescript but failed massively
+@bot.tree.command(name='test')
+async def test(interaction: discord.Interaction):
+    await interaction.response.sent_message(f'Hey')
 
 
-#abandoned code
+# Blackjack
 
-"""@bot.command(
-    name="test",
-    description="test",
-    guild=discord.Object(id=12417128931)
-)
-async def test_command(interaction):
-    await interaction.response.send_message("test yes")"""
+user_tokens = 50
 
+
+cards = {'Ace' : 1, '2' : 2, '3' : 3, '4' : 4, '5': 5, '6' : 6, '7' : 7, '8' : 8, '9' : 9, '10' : 10, 'Jack' : 10, 'Queen' : 10, 'King' : 10}
+deck = list(cards.keys()) * 4
+random.shuffle(deck)
+
+def deal_card(deck):
+    return deck.pop()
+
+
+player_hand = []
+dealer_hand = []
+
+player_hand.append(deal_card(deck))
+player_hand.append(deal_card(deck))
+
+
+dealer_hand.append(deal_card(deck))
+dealer_hand.append(deal_card(deck))
+
+
+def display_hands(player_hand, dealer_hand, reveal_dealer = False):
+    player_display = ', '.join(player_hand)
+    player_total = calculate_hand(player_hand)
+    dealer_total = calculate_hand(dealer_hand)
+
+    if reveal_dealer:
+        dealer_display = ', '.join(dealer_hand)
+        return (f'Players hand: {player_display} (Total: {player_total})\n'
+                f'Dealers hand: {dealer_display} (Total: {dealer_total})')
+    else:
+        dealer_display = dealer_hand[0] + ', [Hidden]'
+    return (f'Players hand: {player_display} (Total: {player_total})\n'
+            f'Dealers hand: {dealer_display}')
+
+def calculate_hand(hand):
+    value = 0
+    aces = 0
+
+    for card in hand:
+        value += cards[card]
+        if card == 'Ace':
+            aces += 1
+
+    while value <= 11 and aces > 0:
+        value += 10
+        aces -= 1
+
+    return value
+
+
+@bot.command()
+async def blackJack(ctx):
+    player_hand = []
+    dealer_hand = []
+    global user_tokens
+    user_tokens -= 5
+    
+    # Initial deal
+    player_hand.append(deal_card(deck))
+    player_hand.append(deal_card(deck))
+    
+    dealer_hand.append(deal_card(deck))
+    dealer_hand.append(deal_card(deck))
+    
+    await ctx.send(display_hands(player_hand, dealer_hand))
+    
+    while True:
+        await ctx.send('User tokens: ' + str(user_tokens) + '\nHit or Stand?')
+        
+        def check(msg):
+            return msg.author == ctx.author and msg.content.lower() in ['hit', 'stand']
+        
+        msg = await bot.wait_for('message', check=check)
+        
+        if msg.content.lower() == 'hit':
+            player_hand.append(deal_card(deck))
+            await ctx.send(display_hands(player_hand, dealer_hand))
+            
+            if calculate_hand(player_hand) > 21:
+                await ctx.send('You bussssed! losaaaah')
+                return
+        else:
+            break
+
+    while calculate_hand(dealer_hand) < 17:
+        dealer_hand.append(deal_card(deck))
+
+        await ctx.send(display_hands(player_hand, dealer_hand, reveal_dealer=True))
+
+        player_total = calculate_hand(player_hand)
+        dealer_total = calculate_hand(dealer_hand)
+
+        if dealer_total > 21:
+            await ctx.send('you won fuck u')
+            user_tokens += 10
+        elif player_total > dealer_total:
+            await ctx.send('you won fuck u')
+            user_tokens += 10
+        elif player_total < dealer_total:
+            await ctx.send('LMFAOOOO I WON AHHAHAHAHAHA')
+        else:
+            await ctx.send('its a.. tie? idk get ur money back')
+            user_tokens += 5
+
+        return
 
 
 
 bot.run(TOKEN)
 
-# to run type "python bot.py"
+    # to run type "python bot.py"
