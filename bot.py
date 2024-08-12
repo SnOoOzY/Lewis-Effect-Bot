@@ -4,7 +4,8 @@ from discord.ext import commands
 import random
 import os
 from dotenv import load_dotenv 
-
+import time
+import datetime
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
@@ -34,13 +35,17 @@ adjectives = ["attractive", "bald", "beautiful", "chubby", "clean", "dazzling", 
 effect = False
 question = False
 question_user_id = None
+measure = False
+suffixOn = False
+timerOn = False
+guessTheNumOn = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
 
 
 @bot.event
 async def on_message(message):
-    global effect, question, question_user_id
+    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn
 
     if message.author.bot:
         return
@@ -52,6 +57,27 @@ async def on_message(message):
         await message.channel.send("You asked: "+ message.content + "\nAnswer: " + random.choice(answers))
         question = False
         question_user_id = None
+
+    if measure and message.author.id != bot.user.id:
+        await message.channel.send('The length of ' + message.content + ' is ' + str(random.randint(0, 5000)) + ' ' + random.choice(measurements))
+        measure = False
+
+    if suffixOn and message.author.id != bot.user.id:
+        await message.channel.send(message.content + random.choice(suffix))
+
+    if guessTheNumOn and message.author.id != bot.user.id:
+        userGuess = int(message.content.lower())
+        randomNum = random.randint(0, 40)
+    
+        while timerOn:
+            if userGuess == randomNum:
+                await message.channel.send('Congrats, you win!')
+                guessTheNumOn  = False
+                timerOn = False
+            else: 
+                await print(userGuess)
+        await message.channel.send(f'You lose! The number was {randomNum}')
+        guessTheNumOn  = False
 
     await bot.process_commands(message)
 
@@ -86,7 +112,7 @@ async def image(ctx):
 
 @bot.command()
 async def commands(ctx):
-    await ctx.send('Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n\nEnjoy')
+    await ctx.send('Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n!inger \n!ingerOff \n!blackJack \n!ruler \n!guessTheNum  \n \n\nEnjoy')
 
 
 @bot.tree.command(name='test')
@@ -166,12 +192,16 @@ async def blackJack(ctx):
     
     while True:
         await ctx.send('User tokens: ' + str(user_tokens) + '\nHit or Stand?')
-        
+
+        global msg
+        global check
+
         def check(msg):
             return msg.author == ctx.author and msg.content.lower() in ['hit', 'stand']
         
-        msg = await bot.wait_for('message', check=check)
         
+        msg = await bot.wait_for('message', check=check)
+
         if msg.content.lower() == 'hit':
             player_hand.append(deal_card(deck))
             await ctx.send(display_hands(player_hand, dealer_hand))
@@ -204,6 +234,55 @@ async def blackJack(ctx):
 
         return
 
+
+measurements = ['kilometres', 'miles', 'hamburgers', 'crocodiles', 'bald eagles', 'centimetres', 'millimetres', 'metres', 'megametres', 'AU', 'lightyears', 'nanometres', 'feet', 'yards', 'toes', 'seconds', 'minutes', 'years', 'tomorrows']
+
+
+@bot.command()
+async def ruler(message):
+    await message.channel.send('What would you like to measure?')
+    global measure
+    measure = True
+
+
+suffix = ['ing', 'nd' 'st', 'rd', 'th', 'ed', 'ily', 's', 'ist' 'ance', 'ible', 'ous', 'some', 'ery', 'ess', 'ish']
+
+@bot.command()
+async def inger(message):
+    await message.channel.send('I will now take every single message and add something to the end yk')
+    global suffixOn
+    suffixOn = True
+
+@bot.command()
+async def ingerOff(message):
+    await message.channel.send('NUH UH ITS OFF NOOOOOOO')
+    global suffixOn
+    suffixOn = False
+
+
+@bot.command()
+async def guessTheNum(message):
+    global guessTheNumOn, timerOn
+    guessTheNumOn = True 
+    await message.channel.send('RULES: \nThe player will have 20 seconds to guess the right number (between 1 - 40)\nYour time begins in 3 seconds')
+    time.sleep(3)
+    timerOn = True
+    await message.channel.send('go go go!')
+    
+    
+    async def timer():
+        global timerOn
+        s = 25
+        while s > 0:
+            timer = datetime.timedelta(seconds = s)
+            print(timer)
+            time.sleep(1)
+            s -= 1
+        print('balls')
+        timerOn = False
+
+    if timerOn:
+        await timer()
 
 
 bot.run(TOKEN)
