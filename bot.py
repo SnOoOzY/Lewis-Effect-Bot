@@ -1,4 +1,5 @@
 import discord
+import openai
 from discord import app_commands
 from discord.ext import commands
 import random
@@ -9,6 +10,7 @@ import datetime
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
+openai.api_key = os.getenv('API_KEY')
 
 CHANNEL_ID = 947902507437391924
 # client = commands.Bot(command_prefix="!", intents=discord.Intents.all()) 
@@ -16,12 +18,20 @@ CHANNEL_ID = 947902507437391924
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
+
+response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "user", "content": "test"},
+    ]
+)
+
+
 @bot.event
 async def on_ready():
     print("im ready")
     channel = bot.get_channel(CHANNEL_ID)
     try:
-        synced = await bot.tree.sync()
         await channel.send("Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n\nEnjoy")
     except Exception as e:
         print(e)
@@ -39,13 +49,14 @@ measure = False
 suffixOn = False
 timerOn = False
 guessTheNumOn = False
+gptQuestion = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
 
 
 @bot.event
 async def on_message(message):
-    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn
+    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn, gptQuestion, messages
 
     if message.author.bot:
         return
@@ -57,6 +68,16 @@ async def on_message(message):
         await message.channel.send("You asked: "+ message.content + "\nAnswer: " + random.choice(answers))
         question = False
         question_user_id = None
+    
+    if gptQuestion and message.author.id == question_user_id and message.author.id != bot.user.id:
+        chat = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo", messages=messages
+        )
+        reply = chat.choices[0].message.content
+        await message.channel.send(f'ChatGPT: {reply}')
+        messages.append({'role': 'assistant', 'content': reply})
+        gptQuestion = False
+
 
     if measure and message.author.id != bot.user.id:
         await message.channel.send('The length of ' + message.content + ' is ' + str(random.randint(0, 5000)) + ' ' + random.choice(measurements))
@@ -101,6 +122,13 @@ async def randomBall(ctx):
     question_user_id = ctx.author.id
     await ctx.send(f'{ctx.author.name}, Ask me a question!')
 
+
+@bot.command()
+async def askGPT(message):
+    global gptQuestion, question_user_id
+    gptQuestion = True
+    question_user_id = message.author.id
+    await message.channel.send(f'{message.author.name}, ask ChatGPT a question!')
 
 # other commands idk
 
@@ -283,6 +311,8 @@ async def guessTheNum(message):
 
     if timerOn:
         await timer()
+
+
 
 
 bot.run(TOKEN)
