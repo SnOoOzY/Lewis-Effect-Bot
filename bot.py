@@ -27,7 +27,7 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 @bot.event
 async def on_ready():
     print("im ready")
-    bigBen.start()
+    bigBenAUTO.start()
     channel = bot.get_channel(CHANNEL_ID)
     
     try:
@@ -305,7 +305,7 @@ async def guessTheNum(message):
         await timer()
 
 @tasks.loop(seconds=1)
-async def bigBen():
+async def bigBenAUTO():
 
     time_now = datetime.now().strftime("%H:%M:%S")
 
@@ -318,7 +318,7 @@ async def bigBen():
             voice_client = await channel.connect()
 
             try:
-                source = FFmpegPCMAudio('C:/Users/lewis/Downloads/bigben.mp3')
+                source = FFmpegPCMAudio('C:/Users/lewis/Downloads/bigbenny.mp3')
                 voice_client.play(source, after=lambda e: print(f"Playback finished: {e}" if e else "Playback finished."))
                 
                 while voice_client.is_playing():
@@ -331,6 +331,25 @@ async def bigBen():
                 if voice_client.is_connected():
                     await voice_client.disconnect()
 
+@bot.command()
+async def bigBen(ctx):
+    if ctx.author.voice:
+        voice_channel = ctx.author.voice.channel
+        voice_client = await voice_channel.connect()
+
+        try:
+            source = FFmpegPCMAudio('C:/Users/lewis/Downloads/bigbenny.mp3')
+            voice_client.play(source, after=lambda e: print(f"Playback finished: {e}" if e else "Playback finished."))
+                
+            while voice_client.is_playing():
+                    await asyncio.sleep(1) 
+                
+            await voice_client.disconnect()
+        except Exception as e:
+                print(f"Error: {e}")
+                await voice_client.disconnect()
+        else:
+            await ctx.send("You are not connected to a voice channel.")
 
 
 bot.run(TOKEN)
