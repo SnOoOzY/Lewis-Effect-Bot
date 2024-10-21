@@ -9,7 +9,7 @@ import random
 import os
 from dotenv import load_dotenv 
 import time
-import datetime
+from datetime import datetime
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
@@ -27,7 +27,9 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 @bot.event
 async def on_ready():
     print("im ready")
+    bigBen.start()
     channel = bot.get_channel(CHANNEL_ID)
+    
     try:
         await channel.send("Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n\nEnjoy")
     except Exception as e:
@@ -302,29 +304,33 @@ async def guessTheNum(message):
     if timerOn:
         await timer()
 
-@tasks.loop(seconds=60)
-async def bigBen(ctx):
-    if ctx.author.voice:
-        voice_channel = ctx.author.voice.channel
-        voice_client = await voice_channel.connect()
+@tasks.loop(seconds=1)
+async def bigBen():
 
-        time_now = datetime.now().strftime("%H:%M:%S")
+    time_now = datetime.now().strftime("%H:%M:%S")
 
-        # if time_now in ["00:00:00", "06:00:00", "12:00:00", "18:00:00", "02:57:00"]: 
+    if time_now in ["00:00:00", "01:00:00", "02:00:00", "03:00:00", "04:00:00", "05:00:00" "06:00:00", "07:00:00", "08:00:00", "09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", "16:00:00", "17:00:00", "18:00:00", "19:00:00", "20:00:00", "21:00:00", "22:00:00", "23:00:00"]: 
 
-        try:
-            source = FFmpegPCMAudio('C:/Users/lewis/Downloads/big-ben-sound-effects.mp3')
-            voice_client.play(source, after=lambda e: print(f"Playback finished: {e}" if e else "Playback finished."))
+        channel = bot.get_channel(1150868133582737529)
+
+        if channel is not None and channel.guild.voice_client is None:
+            print(f"Connecting to voice channel: {channel.name}")
+            voice_client = await channel.connect()
+
+            try:
+                source = FFmpegPCMAudio('C:/Users/lewis/Downloads/bigben.mp3')
+                voice_client.play(source, after=lambda e: print(f"Playback finished: {e}" if e else "Playback finished."))
                 
-            while voice_client.is_playing():
+                while voice_client.is_playing():
                     await asyncio.sleep(1) 
                 
-            await voice_client.disconnect()
-        except Exception as e:
-                print(f"Error: {e}")
                 await voice_client.disconnect()
-        else:
-            await ctx.send("You are not connected to a voice channel.")
+
+            except Exception as e:
+                print(f"Error: {e}")
+                if voice_client.is_connected():
+                    await voice_client.disconnect()
+
 
 
 bot.run(TOKEN)
