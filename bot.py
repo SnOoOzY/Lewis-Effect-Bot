@@ -1,6 +1,9 @@
+import asyncio
+from asyncio import tasks
 import discord
+from discord.ext import tasks
 import openai
-from discord import app_commands
+from discord import FFmpegPCMAudio, app_commands
 from discord.ext import commands
 import random
 import os
@@ -10,7 +13,7 @@ import datetime
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
-openai.api_key = os.getenv('API_KEY')
+
 
 CHANNEL_ID = 947902507437391924
 # client = commands.Bot(command_prefix="!", intents=discord.Intents.all()) 
@@ -19,12 +22,6 @@ CHANNEL_ID = 947902507437391924
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 
-response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "user", "content": "test"},
-    ]
-)
 
 
 @bot.event
@@ -69,14 +66,7 @@ async def on_message(message):
         question = False
         question_user_id = None
     
-    if gptQuestion and message.author.id == question_user_id and message.author.id != bot.user.id:
-        chat = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo", messages=messages
-        )
-        reply = chat.choices[0].message.content
-        await message.channel.send(f'ChatGPT: {reply}')
-        messages.append({'role': 'assistant', 'content': reply})
-        gptQuestion = False
+
 
 
     if measure and message.author.id != bot.user.id:
@@ -138,14 +128,14 @@ async def image(ctx):
     await ctx.send(file=discord.File(r'C:/Users/lewis/Downloads/IMG_6847.jpg')) 
 
 
-@bot.command()
-async def commands(ctx):
-    await ctx.send('Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n!inger \n!ingerOff \n!blackJack \n!ruler \n!guessTheNum  \n \n\nEnjoy')
+@bot.tree.command(name='commands', description='List of all commands')
+async def commands(interaction: discord.Interaction):
+    await interaction.send('Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n!inger \n!ingerOff \n!blackJack \n!ruler \n!guessTheNum  \n \n\nEnjoy')
 
 
-@bot.tree.command(name='test')
+@bot.tree.command(name='test', description='tests slash commands')
 async def test(interaction: discord.Interaction):
-    await interaction.response.sent_message(f'Hey')
+    await interaction.response.send_message('Hey')
 
 
 # Blackjack
@@ -312,7 +302,29 @@ async def guessTheNum(message):
     if timerOn:
         await timer()
 
+@tasks.loop(seconds=60)
+async def bigBen(ctx):
+    if ctx.author.voice:
+        voice_channel = ctx.author.voice.channel
+        voice_client = await voice_channel.connect()
 
+        time_now = datetime.now().strftime("%H:%M:%S")
+
+        # if time_now in ["00:00:00", "06:00:00", "12:00:00", "18:00:00", "02:57:00"]: 
+
+        try:
+            source = FFmpegPCMAudio('C:/Users/lewis/Downloads/big-ben-sound-effects.mp3')
+            voice_client.play(source, after=lambda e: print(f"Playback finished: {e}" if e else "Playback finished."))
+                
+            while voice_client.is_playing():
+                    await asyncio.sleep(1) 
+                
+            await voice_client.disconnect()
+        except Exception as e:
+                print(f"Error: {e}")
+                await voice_client.disconnect()
+        else:
+            await ctx.send("You are not connected to a voice channel.")
 
 
 bot.run(TOKEN)
