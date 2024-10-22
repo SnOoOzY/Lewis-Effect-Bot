@@ -339,19 +339,41 @@ async def bigBen(ctx):
 
         try:
             source = FFmpegPCMAudio('C:/Users/lewis/Downloads/bigbenny.mp3')
-            voice_client.play(source, after=lambda e: print(f"Playback finished: {e}" if e else "Playback finished."))
-                
+            voice_client.play(source, after=lambda e: print(f'Playback finished: {e}' if e else 'Playback finished.'))
+            
             while voice_client.is_playing():
                     await asyncio.sleep(1) 
-                
+            
             await voice_client.disconnect()
         except Exception as e:
-                print(f"Error: {e}")
+                print(f'Error: {e}')
                 await voice_client.disconnect()
         else:
-            await ctx.send("You are not connected to a voice channel.")
+            await ctx.send('You are not connected to a voice channel.')
+
+
+@bot.command()
+async def espresso(ctx):
+    if ctx.author.voice:
+        voice_channel = ctx.author.voice.channel
+        voice_client = await voice_channel.connect()
+
+        try:
+            source = FFmpegPCMAudio('C:/Users/lewis/Downloads/espresso.mp3')
+            voice_client.play(source, after=lambda e: print(f'Playback finished: {e}' if e else 'Playback finished.'))
+
+            while voice_client.is_playing():
+                await asyncio.sleep(1)
+
+            await voice_client.disconnect()
+        except Exception as e:
+            print(f'Error: {e}')
+            await voice_client.disconnect()
+        else:
+            await ctx.send('lemesso')
+
 
 
 bot.run(TOKEN)
 
-    # to run type "python bot.py"
+# to run type "python bot.py"
