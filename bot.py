@@ -28,12 +28,8 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 async def on_ready():
     print("im ready")
     bigBenAUTO.start()
+    await bot.tree.sync()
     channel = bot.get_channel(CHANNEL_ID)
-    
-    try:
-        await channel.send("Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n\nEnjoy")
-    except Exception as e:
-        print(e)
 
 
 
@@ -52,6 +48,8 @@ gptQuestion = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
 
+
+## ON MESSAGE ###
 
 @bot.event
 async def on_message(message):
@@ -95,18 +93,31 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
+## MANUAL COMMANDS / AUTOMATED COMMANDS ##
+bot.remove_command("help")
+
+@bot.command(aliases=["help", "cmds", "commands"])
+async def list_commands(ctx):
+    await ctx.send("Commands: \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack (partially functional) \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso")
+
+
+#lewisEffectOn
 @bot.command()
 async def lewisEffectOn(ctx):
     global effect
     effect = True
     await ctx.send("Lewis effect is enabled.")
 
+
+#lewisEffectOff
 @bot.command()
 async def lewisEffectOff(ctx):
     global effect
     effect = False
     await ctx.send("Lewis effect is disabled.")
 
+
+#randomBall
 @bot.command()
 async def randomBall(ctx):
     global question, question_user_id
@@ -115,6 +126,7 @@ async def randomBall(ctx):
     await ctx.send(f'{ctx.author.name}, Ask me a question!')
 
 
+#askGPT
 @bot.command()
 async def askGPT(message):
     global gptQuestion, question_user_id
@@ -122,23 +134,31 @@ async def askGPT(message):
     question_user_id = message.author.id
     await message.channel.send(f'{message.author.name}, ask ChatGPT a question!')
 
-# other commands idk
 
-
+#imageTest
 @bot.command()
 async def image(ctx):
     await ctx.send(file=discord.File(r'C:/Users/lewis/Downloads/IMG_6847.jpg')) 
 
 
-@bot.tree.command(name='commands', description='List of all commands')
-async def commands(interaction: discord.Interaction):
-    await interaction.send('Commands (case sensitive): \n!randomBall \n!lewisEffectOn \n!lewisEffectOff \n!image \n!inger \n!ingerOff \n!blackJack \n!ruler \n!guessTheNum  \n \n\nEnjoy')
+
+@bot.tree.command(name='slashtest', description='yupyupyupy')
+async def slashTest(interaction: discord.Interaction):
+    await interaction.response.send_message('yup it works')
 
 
-@bot.tree.command(name='test', description='tests slash commands')
-async def test(interaction: discord.Interaction):
-    await interaction.response.send_message('Hey')
-
+@bot.tree.command(name='slots', description='Slot machine cuz gambling is COOL')
+async def slotMachine(interaction: discord.Interaction):
+    response = (
+        "```\n"
+        "╒--------------------------------╕\n"
+        "|                                |\n"
+        "|                                |\n"
+        "|                                |\n"
+        "╘--------------------------------╛\n"
+        "```"
+    )
+    await interaction.response.send_message(response)
 
 # Blackjack
 
@@ -265,6 +285,8 @@ async def ruler(message):
     measure = True
 
 
+
+
 suffix = ['ing', 'nd' 'st', 'rd', 'th', 'ed', 'ily', 's', 'ist' 'ance', 'ible', 'ous', 'some', 'ery', 'ess', 'ish']
 
 @bot.command()
@@ -278,6 +300,8 @@ async def ingerOff(message):
     await message.channel.send('NUH UH ITS OFF NOOOOOOO')
     global suffixOn
     suffixOn = False
+
+
 
 
 @bot.command()
@@ -304,6 +328,9 @@ async def guessTheNum(message):
     if timerOn:
         await timer()
 
+
+
+#AUTO big ben
 @tasks.loop(seconds=1)
 async def bigBenAUTO():
 
@@ -331,6 +358,9 @@ async def bigBenAUTO():
                 if voice_client.is_connected():
                     await voice_client.disconnect()
 
+
+
+#MANUAL big ben
 @bot.command()
 async def bigBen(ctx):
     if ctx.author.voice:
@@ -352,6 +382,8 @@ async def bigBen(ctx):
             await ctx.send('You are not connected to a voice channel.')
 
 
+
+#espressooooooooooo
 @bot.command()
 async def espresso(ctx):
     if ctx.author.voice:
