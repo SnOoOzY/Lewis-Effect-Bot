@@ -45,6 +45,7 @@ suffixOn = False
 timerOn = False
 guessTheNumOn = False
 gptQuestion = False
+rouletteOn = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
 
@@ -53,33 +54,36 @@ answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely tru
 
 @bot.event
 async def on_message(message):
-    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn, gptQuestion, messages
+    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn, gptQuestion, messages, rouletteOn, rouletteNumbers, rouletteGood, rouletteBad, rouletteNeutral, rouletteCharm
 
     if message.author.bot:
         return
     
+    #lewisEffect
     if effect and message.author.id != bot.user.id:
         await message.channel.send(random.choice(adjectives) + " " + message.content)
 
+    #randomBall
     if question and message.author.id == question_user_id and message.author.id != bot.user.id:
         await message.channel.send("You asked: "+ message.content + "\nAnswer: " + random.choice(answers))
         question = False
         question_user_id = None
     
 
-
-
+    #Ruler
     if measure and message.author.id != bot.user.id:
         await message.channel.send('The length of ' + message.content + ' is ' + str(random.randint(0, 5000)) + ' ' + random.choice(measurements))
         measure = False
 
+    #??
     if suffixOn and message.author.id != bot.user.id:
         await message.channel.send(message.content + random.choice(suffix))
 
+    #guessTheNum
     if guessTheNumOn and message.author.id != bot.user.id:
         userGuess = int(message.content.lower())
         randomNum = random.randint(0, 40)
-    
+
         while timerOn:
             if userGuess == randomNum:
                 await message.channel.send('Congrats, you win!')
@@ -91,6 +95,8 @@ async def on_message(message):
         guessTheNumOn  = False
 
     await bot.process_commands(message)
+
+
 
 
 ## MANUAL COMMANDS / AUTOMATED COMMANDS ##
@@ -126,14 +132,25 @@ async def randomBall(ctx):
     await ctx.send(f'{ctx.author.name}, Ask me a question!')
 
 
-#askGPT
 @bot.command()
-async def askGPT(message):
-    global gptQuestion, question_user_id
-    gptQuestion = True
-    question_user_id = message.author.id
-    await message.channel.send(f'{message.author.name}, ask ChatGPT a question!')
+async def roulette(ctx):
+    global rouletteOn
+    rouletteOn = True
+    global rouletteNumbers
+    rouletteNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+    await ctx.send(f'{ctx.author.name}, pick a number between 1 - 20!' ) 
 
+    random.shuffle(rouletteNumbers)
+    global rouletteGood
+    rouletteGood = rouletteNumbers[0, 6]
+    global rouletteBad
+    rouletteBad = rouletteNumbers[7, 15]
+    global rouletteNeutral
+    rouletteNeutral = rouletteNumbers[16, 18]
+    global rouletteCharm
+    rouletteCharm = rouletteNumbers[19]
+    
+    
 
 #imageTest
 @bot.command()
