@@ -10,6 +10,7 @@ import os
 from dotenv import load_dotenv 
 import time
 from datetime import datetime
+import json
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
@@ -48,6 +49,26 @@ gptQuestion = False
 rouletteOn = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
+
+
+#Roulette points init
+
+userPoints = {}
+
+def loadPoints():
+    global points
+    try:
+        with open('points.json', 'r') as pointLoad:
+            points = json.load(pointLoad)
+    except FileNotFoundError:
+        points = {}
+
+    
+def savePoints():
+    with open('points.json', 'w') as pointSave:
+        json.dump(points, pointSave)
+
+
 
 
 ## ON MESSAGE ###
@@ -136,21 +157,44 @@ async def randomBall(ctx):
 async def roulette(ctx):
     global rouletteOn
     rouletteOn = True
+    global goodRoulette
+    goodRoulette = False
+    global badRoulette
+    badRoulette = False
+    global neutralRoulette
+    neutralRoulette = False
+    global charm
+    charm = False
     global rouletteNumbers
     rouletteNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
-    await ctx.send(f'{ctx.author.name}, pick a number between 1 - 20!' ) 
 
-    random.shuffle(rouletteNumbers)
-    global rouletteGood
-    rouletteGood = rouletteNumbers[0, 6]
-    global rouletteBad
-    rouletteBad = rouletteNumbers[7, 15]
-    global rouletteNeutral
-    rouletteNeutral = rouletteNumbers[16, 18]
-    global rouletteCharm
-    rouletteCharm = rouletteNumbers[19]
-    
-    
+    user = ctx.author.id
+    userPoints = points.get(user, 50)
+
+
+    rouletteFinalNum = []
+    rouletteFinalNum.append(random.choice(rouletteNumbers))
+
+    if rouletteFinalNum[0:6]:
+        goodRoulette = True
+        userPoints += 10
+        await ctx.send(f'You got {rouletteFinalNum}! \npoints: {userPoints}')
+    elif rouletteFinalNum[7:15]:
+        badRoulette = True
+        userPoints -= 10
+        await ctx.send(f'You got {rouletteFinalNum}! \npoints: {userPoints}')
+    elif rouletteFinalNum[16:18]:
+        neutralRoulette = True
+        await ctx.send(f'You got {rouletteFinalNum}! \npoints: {userPoints}')
+    else:
+        charm = True
+        userPoints += 25
+        await ctx.send(f'You got {rouletteFinalNum}! \npoints: {userPoints}')
+
+    points[user] = userPoints
+    savePoints()
+
+
 
 #imageTest
 @bot.command()
