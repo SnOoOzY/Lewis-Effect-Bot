@@ -10,7 +10,7 @@ import os
 from dotenv import load_dotenv 
 import time
 from datetime import datetime
-import json
+import csv
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
@@ -53,21 +53,19 @@ answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely tru
 
 #Roulette points init
 
-userPoints = {}
+userStats = []
 
 def loadPoints():
-    global points
-    try:
-        with open('points.json', 'r') as pointLoad:
-            points = json.load(pointLoad)
-    except FileNotFoundError:
-        points = {}
+    with open('stats.csv', 'r', newline='') as csvFile:
+        reader = csv.DictReader(csvFile)
+        for row in reader:
+            userStats.append(reader)
 
     
 def savePoints():
-    with open('points.json', 'w') as pointSave:
-        json.dump(points, pointSave)
-
+    with open('stats.csv', 'w', newline='') as csvFile:
+        writer = csv.DictWriter(csvFile)
+        writer.writerows(userStats)
 
 
 
