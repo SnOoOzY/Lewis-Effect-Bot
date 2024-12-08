@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 import time
 from datetime import datetime
 import json
+import csv
+from quote import quote
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
@@ -20,7 +22,7 @@ CHANNEL_ID = 947902507437391924
 # client = commands.Bot(command_prefix="!", intents=discord.Intents.all()) 
 # tree = app_commands.CommandTree(client)
 
-bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.all(), case_insensitive=True)
 
 
 
@@ -29,6 +31,7 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 async def on_ready():
     print("im ready")
     bigBenAUTO.start()
+    quoteOfTheDay.start()
     await bot.tree.sync()
     channel = bot.get_channel(CHANNEL_ID)
 
@@ -49,25 +52,6 @@ gptQuestion = False
 rouletteOn = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
-
-
-#Roulette points init
-
-userPoints = {}
-
-def loadPoints():
-    global points
-    try:
-        with open('points.json', 'r') as pointLoad:
-            points = json.load(pointLoad)
-    except FileNotFoundError:
-        points = {}
-
-    
-def savePoints():
-    with open('points.json', 'w') as pointSave:
-        json.dump(points, pointSave)
-
 
 
 
@@ -125,7 +109,7 @@ bot.remove_command("help")
 
 @bot.command(aliases=["help", "cmds", "commands"])
 async def list_commands(ctx):
-    await ctx.send("Commands: \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack (partially functional) \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso")
+    await ctx.send("Commands (NOT case sensitive anymore 🔥): \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso \n!randomQuote")
 
 
 #lewisEffectOn
@@ -151,49 +135,6 @@ async def randomBall(ctx):
     question = True
     question_user_id = ctx.author.id
     await ctx.send(f'{ctx.author.name}, Ask me a question!')
-
-
-@bot.command()
-async def roulette(ctx):
-    global rouletteOn
-    rouletteOn = True
-    global goodRoulette
-    goodRoulette = False
-    global badRoulette
-    badRoulette = False
-    global neutralRoulette
-    neutralRoulette = False
-    global charm
-    charm = False
-    global rouletteNumbers
-    rouletteNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
-
-    user = ctx.author.id
-    userPoints = points.get(user, 50)
-
-
-    rouletteFinalNum = []
-    rouletteFinalNum.append(random.choice(rouletteNumbers))
-
-    if rouletteFinalNum[0:6]:
-        goodRoulette = True
-        userPoints += 10
-        await ctx.send(f'You got {rouletteFinalNum}! \npoints: {userPoints}')
-    elif rouletteFinalNum[7:15]:
-        badRoulette = True
-        userPoints -= 10
-        await ctx.send(f'You got {rouletteFinalNum}! \npoints: {userPoints}')
-    elif rouletteFinalNum[16:18]:
-        neutralRoulette = True
-        await ctx.send(f'You got {rouletteFinalNum}! \npoints: {userPoints}')
-    else:
-        charm = True
-        userPoints += 25
-        await ctx.send(f'You got {rouletteFinalNum}! \npoints: {userPoints}')
-
-    points[user] = userPoints
-    savePoints()
-
 
 
 #imageTest
@@ -306,12 +247,18 @@ async def blackJack(ctx):
         if msg.content.lower() == 'hit':
             player_hand.append(deal_card(deck))
             await ctx.send(display_hands(player_hand, dealer_hand))
-            
+
             if calculate_hand(player_hand) > 21:
                 await ctx.send('You bussssed! losaaaah')
                 return
         else:
             break
+
+        if msg.content.lower() == 'stand':
+            await ctx.send(display_hands(player_hand, dealer_hand, reveal_dealer=True))
+            return
+
+
 
     while calculate_hand(dealer_hand) < 17:
         dealer_hand.append(deal_card(deck))
@@ -394,7 +341,6 @@ async def guessTheNum(message):
 #AUTO big ben
 @tasks.loop(seconds=1)
 async def bigBenAUTO():
-
     time_now = datetime.now().strftime("%H:%M:%S")
 
     if time_now in ["00:00:00", "01:00:00", "02:00:00", "03:00:00", "04:00:00", "05:00:00" "06:00:00", "07:00:00", "08:00:00", "09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", "16:00:00", "17:00:00", "18:00:00", "19:00:00", "20:00:00", "21:00:00", "22:00:00", "23:00:00"]: 
@@ -418,6 +364,7 @@ async def bigBenAUTO():
                 print(f"Error: {e}")
                 if voice_client.is_connected():
                     await voice_client.disconnect()
+
 
 
 
@@ -465,6 +412,45 @@ async def espresso(ctx):
         else:
             await ctx.send('lemesso')
 
+
+
+@bot.command()
+async def randomQuote(ctx):
+
+    searchArray = ['love', 'happiness', 'success', 'friendship', 'wisdom', 'life', 'strength', 'dreams', 'courage', 'nature']
+    search = random.choice(searchArray)
+    quotes = quote(search, limit=10)
+
+    if quotes:
+        selectedQuote = random.choice(quotes)
+        quoteText = f'"{selectedQuote['quote']} - {selectedQuote['author']}'
+    else:
+        quoteText = 'No quoties found matey!'
+
+    await ctx.send(quoteText)
+
+
+@tasks.loop(seconds=1)
+async def quoteOfTheDay():
+    
+    
+    time_now = datetime.now().strftime("%H:%M:%S")
+    targetTime = '17:00:00'
+
+    if time_now == targetTime:
+        quoteChannel = bot.get_channel(1201260512160256050)
+        searchArray = ['love', 'happiness', 'success', 'friendship', 'wisdom', 'life', 'strength', 'dreams', 'courage', 'nature']
+        search = random.choice(searchArray)
+        quotes = quote(search, limit=10)
+
+        if quotes:
+            selectedQuote = random.choice(quotes)
+            quoteText = f'"{selectedQuote['quote']} - {selectedQuote['author']}'
+        else:
+            quoteText = 'No quoties found matey!'
+
+        print(quoteText)
+        await quoteChannel.send(quoteText)
 
 
 bot.run(TOKEN)
