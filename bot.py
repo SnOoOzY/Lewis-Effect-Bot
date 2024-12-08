@@ -50,6 +50,7 @@ timerOn = False
 guessTheNumOn = False
 gptQuestion = False
 rouletteOn = False
+rpsOn = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
 
@@ -59,7 +60,7 @@ answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely tru
 
 @bot.event
 async def on_message(message):
-    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn, gptQuestion, messages, rouletteOn, rouletteNumbers, rouletteGood, rouletteBad, rouletteNeutral, rouletteCharm
+    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn, gptQuestion, messages, rouletteOn, rouletteNumbers, rouletteGood, rouletteBad, rouletteNeutral, rouletteCharm, rpsOn
 
     if message.author.bot:
         return
@@ -99,6 +100,30 @@ async def on_message(message):
         await message.channel.send(f'You lose! The number was {randomNum}')
         guessTheNumOn  = False
 
+    if rpsOn and message.author.id != bot.user.id:
+        userRpsGuess = message.content.lower()
+        rpsChoices = ['rock', 'paper', 'scissors']
+
+        if userRpsGuess in rpsChoices:
+            botChoice = random.choice(rpsChoices)
+            await message.channel.send(botChoice)
+
+            if userRpsGuess == rpsChoices[0] and botChoice == rpsChoices[1] or userRpsGuess == rpsChoices[2] and botChoice == rpsChoices[0] or userRpsGuess == rpsChoices[1] and botChoice == rpsChoices[2]:
+                await message.channel.send('I won!')
+                rpsOn = False
+            
+            elif userRpsGuess == rpsChoices[0] and botChoice == rpsChoices[2] or userRpsGuess == rpsChoices[2] and botChoice == rpsChoices[1]:
+                await message.channel.send('I lost!')
+                rpsOn = False
+
+            else:
+                await message.channel.send('Tie!')
+                rpsOn = False
+        
+        else:
+            await message.channel.send('Put in a choice (rock, paper, scissor) you fucking idiot')
+
+
     await bot.process_commands(message)
 
 
@@ -109,7 +134,7 @@ bot.remove_command("help")
 
 @bot.command(aliases=["help", "cmds", "commands"])
 async def list_commands(ctx):
-    await ctx.send("Commands (NOT case sensitive anymore 🔥): \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso \n!randomQuote")
+    await ctx.send("Commands (NOT case sensitive anymore 🔥): \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso \n!randomQuote \n!rps (or !rockpaperscissors / !rock)")
 
 
 #lewisEffectOn
@@ -452,6 +477,13 @@ async def quoteOfTheDay():
         print(quoteText)
         await quoteChannel.send(quoteText)
 
+
+@bot.command(aliases=["rockpaperscissors", "rock"])
+async def rps(ctx):
+
+    await ctx.send('Rock paper scissors! Lets play! (I will pick my choice randomly after youve done yours so its not rigged )')
+    global rpsOn
+    rpsOn = True
 
 bot.run(TOKEN)
 
