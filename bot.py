@@ -10,9 +10,8 @@ import os
 from dotenv import load_dotenv 
 import time
 from datetime import datetime
-import json
-import csv
 from quote import quote
+import csv
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
@@ -53,8 +52,6 @@ rouletteOn = False
 rpsOn = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
-
-
 
 ## ON MESSAGE ###
 
