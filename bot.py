@@ -50,14 +50,14 @@ guessTheNumOn = False
 gptQuestion = False
 rouletteOn = False
 rpsOn = False
+dice = False
 
 answers = ['yes', 'no', 'ask your mother', 'definitely', 'that is absolutely true', 'very no', 'absolutely not', 'not at all true', 'that is false', 'I do not care', 'this is not my business', 'and why is that my problem?', 'get raph to answer this idk', 'just because im an 8ball doesnt mean i can fix all of your problems', 'fuck you', 'why?', 'who?', 'how?', 'how does society accept this at all?', 'elon musk might have something to say about that', 'fuck off', 'gay', 'maybe ur just gay lol', 'come out already', 'this is so not right', 'nuh uh', 'yuh huh', 'perchance...']
-
 ## ON MESSAGE ###
 
 @bot.event
 async def on_message(message):
-    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn, gptQuestion, messages, rouletteOn, rouletteNumbers, rouletteGood, rouletteBad, rouletteNeutral, rouletteCharm, rpsOn
+    global effect, question, question_user_id, measure, suffixOn, timerOn, guessTheNumOn, gptQuestion, messages, rouletteOn, rouletteNumbers, rouletteGood, rouletteBad, rouletteNeutral, rouletteCharm, rpsOn, diceNumbers, dice
 
     if message.author.bot:
         return
@@ -121,6 +121,22 @@ async def on_message(message):
             await message.channel.send('Put in a choice (rock, paper, scissor) you fucking idiot')
 
 
+    if dice and message.author.id != bot.user.id:
+        try:
+            userDiceNum = int(message.content)
+            diceNumber = random.randint(1, 6)
+
+            if userDiceNum != diceNumber:
+                await message.channel.send(f'nuh uh WRRRROOOOOOOOOOOOOOOOONG it was {diceNumber} IDIOT')
+            else:
+                await message.channel.send('You got it!!!! HAAA!')
+
+            dice = False
+        
+        except ValueError:
+            await message.channel.send('Please do a number you idiot')
+
+
     await bot.process_commands(message)
 
 
@@ -131,7 +147,7 @@ bot.remove_command("help")
 
 @bot.command(aliases=["help", "cmds", "commands"])
 async def list_commands(ctx):
-    await ctx.send("Commands (NOT case sensitive anymore 🔥): \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso \n!randomQuote \n!rps (or !rockpaperscissors / !rock)")
+    await ctx.send("Commands (NOT case sensitive anymore 🔥): \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso \n!randomQuote \n!rps (or !rockpaperscissors / !rock) \n!dice")
 
 
 #lewisEffectOn
@@ -244,26 +260,23 @@ async def blackJack(ctx):
     dealer_hand = []
     global user_tokens
     user_tokens -= 5
-    
+
     # Initial deal
     player_hand.append(deal_card(deck))
     player_hand.append(deal_card(deck))
-    
+
     dealer_hand.append(deal_card(deck))
     dealer_hand.append(deal_card(deck))
-    
+
     await ctx.send(display_hands(player_hand, dealer_hand))
+
+    
+    def check(msg):
+        return msg.author == ctx.author and msg.content.lower() in ['hit', 'stand']
+
     
     while True:
         await ctx.send('User tokens: ' + str(user_tokens) + '\nHit or Stand?')
-
-        global msg
-        global check
-
-        def check(msg):
-            return msg.author == ctx.author and msg.content.lower() in ['hit', 'stand']
-        
-        
         msg = await bot.wait_for('message', check=check)
 
         if msg.content.lower() == 'hit':
@@ -273,36 +286,34 @@ async def blackJack(ctx):
             if calculate_hand(player_hand) > 21:
                 await ctx.send('You bussssed! losaaaah')
                 return
-        else:
-            break
 
-        if msg.content.lower() == 'stand':
-            await ctx.send(display_hands(player_hand, dealer_hand, reveal_dealer=True))
-            return
+        elif msg.content.lower() == 'stand':
+            break 
 
-
-
+    
     while calculate_hand(dealer_hand) < 17:
         dealer_hand.append(deal_card(deck))
 
-        await ctx.send(display_hands(player_hand, dealer_hand, reveal_dealer=True))
+    await ctx.send(display_hands(player_hand, dealer_hand, reveal_dealer=True))
 
-        player_total = calculate_hand(player_hand)
-        dealer_total = calculate_hand(dealer_hand)
+    
+    player_total = calculate_hand(player_hand)
+    dealer_total = calculate_hand(dealer_hand)
 
-        if dealer_total > 21:
-            await ctx.send('you won fuck u')
-            user_tokens += 10
-        elif player_total > dealer_total:
-            await ctx.send('you won fuck u')
-            user_tokens += 10
-        elif player_total < dealer_total:
-            await ctx.send('LMFAOOOO I WON AHHAHAHAHAHA')
-        else:
-            await ctx.send('its a.. tie? idk get ur money back')
-            user_tokens += 5
+    if dealer_total > 21:
+        await ctx.send('you won fuck u')
+        user_tokens += 10
+    elif player_total > dealer_total:
+        await ctx.send('you won fuck u')
+        user_tokens += 10
+    elif player_total < dealer_total:
+        await ctx.send('LMFAOOOO I WON AHHAHAHAHAHA')
+    else:
+        await ctx.send('its a.. tie? idk get ur money back')
+        user_tokens += 5
 
-        return
+    return
+
 
 
 measurements = ['kilometres', 'miles', 'hamburgers', 'crocodiles', 'bald eagles', 'centimetres', 'millimetres', 'metres', 'megametres', 'AU', 'lightyears', 'nanometres', 'feet', 'yards', 'toes', 'seconds', 'minutes', 'years', 'tomorrows']
@@ -365,17 +376,32 @@ async def guessTheNum(message):
 async def bigBenAUTO():
     time_now = datetime.now().strftime("%H:%M:%S")
 
-    if time_now in ["00:00:00", "01:00:00", "02:00:00", "03:00:00", "04:00:00", "05:00:00" "06:00:00", "07:00:00", "08:00:00", "09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", "16:00:00", "17:00:00", "18:00:00", "19:00:00", "20:00:00", "21:00:00", "22:00:00", "23:00:00"]: 
+    if time_now in ["22:24:30", "00:00:00", "01:00:00", "02:00:00", "03:00:00", "04:00:00", "05:00:00", "06:00:00", "07:00:00", "08:00:00", "09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", "16:00:00", "17:00:00", "18:00:00", "19:00:00", "20:00:00", "21:00:00", "22:00:00", "23:00:00"]: 
 
-        channel = bot.get_channel(1150868133582737529)
+        for guild in bot.guilds:
+            if guild.id != 837266679443619860:
+                continue
 
-        if channel is not None and channel.guild.voice_client is None:
-            print(f"Connecting to voice channel: {channel.name}")
+            print(f'Checking guild: {guild.name}')
+
+            for vc in guild.voice_channels:
+                print(f'VC: {vc.name}, Members: {len(vc.members)}')
+
+            channel_check = [vc for vc in guild.voice_channels if len(vc.members) > 0]
+
+            if not channel_check:
+                print('VC is dead')
+                return
+        
+        channel = max(channel_check, key=lambda vc: len(vc.members))
+
+        if guild.voice_client is None:
+            print(f'Connecting to voice channel: {channel.name}')
             voice_client = await channel.connect()
 
             try:
                 source = FFmpegPCMAudio('C:/Users/lewis/Downloads/bigbenny.mp3')
-                voice_client.play(source, after=lambda e: print(f"Playback finished: {e}" if e else "Playback finished."))
+                voice_client.play(source, after=lambda e: print(f'Playback finished: {e}' if e else 'Playback finished.'))
                 
                 while voice_client.is_playing():
                     await asyncio.sleep(1) 
@@ -383,7 +409,7 @@ async def bigBenAUTO():
                 await voice_client.disconnect()
 
             except Exception as e:
-                print(f"Error: {e}")
+                print(f'Error: {e}')
                 if voice_client.is_connected():
                     await voice_client.disconnect()
 
@@ -481,6 +507,16 @@ async def rps(ctx):
     await ctx.send('Rock paper scissors! Lets play! (I will pick my choice randomly after youve done yours so its not rigged )')
     global rpsOn
     rpsOn = True
+
+
+@bot.command()
+async def dice(ctx):
+    global dice
+    await ctx.send('Ill roll a 6 sided die. Guess the correct number or you get timed out.')
+    
+    dice = True
+    
+
 
 bot.run(TOKEN)
 
