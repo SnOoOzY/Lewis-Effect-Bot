@@ -12,6 +12,7 @@ import time
 from datetime import datetime
 from quote import quote
 import csv
+import randfacts
 
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
@@ -147,7 +148,7 @@ bot.remove_command("help")
 
 @bot.command(aliases=["help", "cmds", "commands"])
 async def list_commands(ctx):
-    await ctx.send("Commands (NOT case sensitive anymore 🔥): \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso \n!randomQuote \n!rps (or !rockpaperscissors / !rock) \n!dice")
+    await ctx.send("Commands (NOT case sensitive anymore 🔥): \n!lewisEffectOn \n!lewisEffectOff \n!randomBall \n!image (test command) \n!blackJack \n!ruler \n!inger \n!ingerOff \n!guessTheNum (not done) \n!bigBen \n!espresso \n!randomQuote \n!rps (or !rockpaperscissors / !rock) \n!dice \n!funFact")
 
 
 #lewisEffectOn
@@ -513,9 +514,13 @@ async def rps(ctx):
 async def dice(ctx):
     global dice
     await ctx.send('Ill roll a 6 sided die. Guess the correct number or you get timed out.')
-    
     dice = True
     
+
+@bot.command()
+async def funFact(ctx):
+    randomFact = randfacts.get_fact()
+    await ctx.send(randomFact)
 
 
 bot.run(TOKEN)
